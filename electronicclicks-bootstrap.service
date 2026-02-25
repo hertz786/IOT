@@ -1,0 +1,19 @@
+[Unit]
+Description=ELECTRONIC CLIKS SmartLock Bootstrap Service
+After=network-online.target NetworkManager.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=electronicclickspi
+Group=electronicclickspi
+WorkingDirectory=__PROJECT_DIR__
+ExecStart=/usr/bin/python3 __PROJECT_DIR__/bootstrap.py
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
