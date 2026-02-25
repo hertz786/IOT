@@ -27,9 +27,13 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 LOCAL_GPIO_SCRIPT = SCRIPT_DIR / "gpio_main.py"
 CLOUD_GPIO_SCRIPT = SCRIPT_DIR / "gpio_main_cloud.py"
 
-GITLAB_RAW_URL = os.getenv(
+PRIMARY_CLOUD_URL = os.getenv(
     "GITLAB_GPIO_RAW_URL",
-    "https://gitlab.com/electronic-cliks/smartlock-iot/-/raw/main/gpio_main.py",
+    "https://raw.githubusercontent.com/hertz786/IOT/main/gpio_main.py",
+)
+ADDITIONAL_CLOUD_URLS = os.getenv(
+    "CLOUD_GPIO_ADDITIONAL_URLS",
+    "https://raw.githubusercontent.com/hertz786/IOT/master/gpio_main.py",
 )
 REQUEST_TIMEOUT_SECONDS = int(os.getenv("BOOTSTRAP_HTTP_TIMEOUT", "15"))
 INTERNET_TEST_HOST = os.getenv("BOOTSTRAP_INET_HOST", "1.1.1.1")
@@ -92,10 +96,29 @@ def is_internet_reachable() -> bool:
         return False
 
 
+def _cloud_source_urls() -> list[str]:
+    urls = [PRIMARY_CLOUD_URL.strip()]
+    urls.extend(item.strip() for item in ADDITIONAL_CLOUD_URLS.split(",") if item.strip())
+    seen = set()
+    deduped = []
+    for url in urls:
+        if url and url not in seen:
+            deduped.append(url)
+            seen.add(url)
+    return deduped
+
+
+def _request_headers() -> dict[str, str]:
+    token = os.getenv("CLOUD_BEARER_TOKEN") or os.getenv("GITHUB_TOKEN", "")
+    if token:
+        return {"Authorization": f"Bearer {token}"}
+    return {}
+
+
 def download_latest_gpio_script(url: str, output_path: Path) -> bool:
     LOGGER.info("Attempting cloud GPIO download from %s", url)
     try:
-        response = requests.get(url, timeout=REQUEST_TIMEOUT_SECONDS)
+        response = requests.get(url, timeout=REQUEST_TIMEOUT_SECONDS, headers=_request_headers())
         response.raise_for_status()
 
         with tempfile.NamedTemporaryFile("w", delete=False, encoding="utf-8") as temp_file:
@@ -113,9 +136,10 @@ def download_latest_gpio_script(url: str, output_path: Path) -> bool:
 
 def select_main_script() -> Optional[Path]:
     if is_internet_reachable():
-        if download_latest_gpio_script(GITLAB_RAW_URL, CLOUD_GPIO_SCRIPT):
-            LOGGER.info("Using cloud GPIO script: %s", CLOUD_GPIO_SCRIPT)
-            return CLOUD_GPIO_SCRIPT
+        for cloud_url in _cloud_source_urls():
+            if download_latest_gpio_script(cloud_url, CLOUD_GPIO_SCRIPT):
+                LOGGER.info("Using cloud GPIO script: %s", CLOUD_GPIO_SCRIPT)
+                return CLOUD_GPIO_SCRIPT
         LOGGER.warning("Cloud script unavailable, falling back to local GPIO script.")
 
     if LOCAL_GPIO_SCRIPT.exists():

@@ -11,7 +11,7 @@ set -euo pipefail
 #   REPO_BRANCH     Branch/tag to deploy (default: main)
 #   INSTALL_DIR     Target directory on Pi (default: /opt/electronic-cliks-smartlock)
 
-REPO_URL="${REPO_URL:-https://gitlab.com/electronic-cliks/smartlock-iot.git}"
+REPO_URL="${REPO_URL:-https://github.com/hertz786/IOT.git}"
 REPO_BRANCH="${REPO_BRANCH:-main}"
 INSTALL_DIR="${INSTALL_DIR:-/opt/electronic-cliks-smartlock}"
 

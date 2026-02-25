@@ -7,13 +7,13 @@ Push this folder to GitLab first so `remote_install.sh` can be downloaded and th
 Run this single command:
 
 ```bash
-curl -fsSL https://gitlab.com/electronic-cliks/smartlock-iot/-/raw/main/remote_install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/hertz786/IOT/main/remote_install.sh | sudo bash
 ```
 
 If your repo URL is different, use:
 
 ```bash
-curl -fsSL https://gitlab.com/<org>/<repo>/-/raw/main/remote_install.sh | sudo REPO_URL=https://gitlab.com/<org>/<repo>.git bash
+curl -fsSL https://raw.githubusercontent.com/<org>/<repo>/main/remote_install.sh | sudo REPO_URL=https://github.com/<org>/<repo>.git bash
 ```
 
 ## 3) Verify
